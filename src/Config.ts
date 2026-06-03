@@ -5,9 +5,14 @@ export const Config = {
   PORT: process.env.REACT_APP_PORT || 3000,
   SERVICES: {
     urlBackEndAdmin: process.env.REACT_APP_VARIAMOS_ADMIN_API_URL,
+    urlBackEndLanguage: process.env.REACT_APP_URLBACKENDLANGUAGE,
+    urlBackEndProjectPersistence: process.env.REACT_APP_URLVMSPROJECTS,
+    urlBackEndRestriction: process.env.REACT_APP_URLBACKENDRESTRICTION,
     urlBackEndLaboratory: process.env.REACT_APP_URLBACKENDLABORATORY,
     urlVariamosDocumentation: process.env.REACT_APP_URLVARIAMOSDOCUMENTATION,
-    urlVariamosLangDocumentation: process.env.REACT_APP_URLVARIAMOSLANGDOCUMENTATION,
+    urlVariamosLanguages: process.env.REACT_APP_URLVARIAMOSLANGUAGES,
+    urlVariamosLangDocumentation:
+      process.env.REACT_APP_URLVARIAMOSLANGDOCUMENTATION,
   },
   LOGIN_URL: process.env.REACT_APP_VARIAMOS_LOGIN_URL || "",
 };

@@ -16,11 +16,14 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "typeRoots": ["node_modules/@types", "node_modules/@typed-mxgraph"],
+    "types": ["jest", "node"],
     "noImplicitAny": false,
     "strictNullChecks": false,
     "sourceMap": true,
     "paths": {
-      "react": ["./node_modules/@types/react"]
+      "react": ["./node_modules/@types/react"],
+      "@components/*": ["./src/core/components/*"],
+      "@ui/*": ["./src/UI/*"]
     }
   },
   "include": ["src"]
