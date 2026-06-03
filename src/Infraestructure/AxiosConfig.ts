@@ -25,4 +25,10 @@ export const LABORATORY_CLIENT = axios.create({
 });
 
 
+export const PROJECTS_CLIENT = axios.create({
+  baseURL: Config.SERVICES.urlBackEndProjectPersistence,
+  timeout: 30000,
+  withCredentials: true,
+});
+
 LABORATORY_CLIENT.interceptors.request.use(authInterceptor);
