@@ -1,39 +1,69 @@
+import {
+  ResponseModel,
+  SessionInfoResponse,
+} from "@variamosple/variamos-components";
 import axios from "axios";
-import { ResponseModel } from "@variamosple/variamos-components";
-import { AUTH_CLIENT } from "../../Infraestructure/AxiosConfig";
+import { ADMIN_CLIENT } from "../../Infraestructure/AxiosConfig";
 
-/**
- * Service for user authentication
- * Handles login, logout, session validation
- */
-export class AuthService {
-  async login(credentials: { email: string; password: string }): Promise<ResponseModel<any>> {
-    try {
-      const response = await AUTH_CLIENT.post("/login", credentials);
-      return response.data;
-    } catch (error) {
-      console.error("Error during login:", error);
-      throw error;
-    }
-  }
+export const getSessionInfo = (): Promise<
+  ResponseModel<SessionInfoResponse>
+> => {
+  return ADMIN_CLIENT.get("/auth/session-info", {
+    headers: {
+      "Cache-Control": "no-cache",
+      Pragma: "no-cache",
+    },
+  })
+    .then((response) => response.data)
+    .catch((error) => {
+      if (axios.isAxiosError(error)) {
+        console.error("Axios error:", error.message);
 
-  async logout(): Promise<void> {
-    try {
-      await AUTH_CLIENT.post("/logout");
-    } catch (error) {
-      console.error("Error during logout:", error);
-    }
-  }
+        const response = error.response?.data;
 
-  async validateSession(): Promise<ResponseModel<any>> {
-    try {
-      const response = await AUTH_CLIENT.get("/validate-session");
-      return response.data;
-    } catch (error) {
-      console.error("Error validating session:", error);
-      throw error;
-    }
-  }
-}
+        if (!!response) {
+          return response;
+        }
 
-export default new AuthService();
+        return new ResponseModel("BACK-ERROR").withError(
+          Number.parseInt(error.code || "500"),
+          "Error when comunicating with the back-end."
+        );
+      } else {
+        console.error("Unexpected error:", error);
+
+        return new ResponseModel("APP-ERROR").withError(
+          500,
+          "Error when trying to get session info, please try again later."
+        );
+      }
+    });
+};
+
+export const requestLogout = (): Promise<ResponseModel<void>> => {
+  return ADMIN_CLIENT.post("/auth/logout")
+    .then(() => {})
+    .catch((error) => {
+      if (axios.isAxiosError(error)) {
+        console.error("Axios error:", error.message);
+
+        const response = error.response?.data;
+
+        if (!!response) {
+          return response;
+        }
+
+        return new ResponseModel("BACK-ERROR").withError(
+          Number.parseInt(error.code || "500"),
+          "Error when comunicating with the back-end."
+        );
+      } else {
+        console.error("Unexpected error:", error);
+
+        return new ResponseModel("APP-ERROR").withError(
+          500,
+          "Error when trying to logout, please try again later."
+        );
+      }
+    });
+};

@@ -1,36 +1,31 @@
+import { ResponseModel } from "@variamosple/variamos-components";
 import axios from "axios";
-import { ANALYTICS_CLIENT } from "../../Infraestructure/AxiosConfig";
+import { ADMIN_CLIENT } from "../../Infraestructure/AxiosConfig";
 
-/**
- * Service for tracking user visits and analytics
- * Records experiment access and simulation runs
- */
-export class VisitsService {
-  async trackExperimentAccess(experimentId: string): Promise<void> {
-    try {
-      await ANALYTICS_CLIENT.post("/visits/experiment", { experimentId });
-    } catch (error) {
-      console.error("Error tracking experiment access:", error);
-    }
-  }
+export const registerVisit = (pageId: string): Promise<ResponseModel<void>> => {
+  return ADMIN_CLIENT.post(`/v1/visits`, { pageId })
+    .then((response) => response.data)
+    .catch((error) => {
+      if (axios.isAxiosError(error)) {
+        console.error("Axios error:", error.message);
 
-  async trackSimulationRun(experimentId: string, duration: number): Promise<void> {
-    try {
-      await ANALYTICS_CLIENT.post("/visits/simulation", { experimentId, duration });
-    } catch (error) {
-      console.error("Error tracking simulation run:", error);
-    }
-  }
+        const response = error.response?.data;
 
-  async getUserActivity(userId: string): Promise<any> {
-    try {
-      const response = await ANALYTICS_CLIENT.get(`/visits/user/${userId}`);
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching user activity:", error);
-      throw error;
-    }
-  }
-}
+        if (!!response) {
+          return response;
+        }
 
-export default new VisitsService();
+        return new ResponseModel("BACK-ERROR").withError(
+          Number.parseInt(error.code || "500"),
+          "Network/communication error."
+        );
+      } else {
+        console.error("Unexpected error:", error);
+
+        return new ResponseModel("APP-ERROR").withError(
+          500,
+          "Error when trying register the visit, please try again later."
+        );
+      }
+    });
+};

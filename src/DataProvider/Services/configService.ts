@@ -1,33 +1,31 @@
-import { Config } from "../../Config";
+import { Menu, ResponseModel } from "@variamosple/variamos-components";
+import axios from "axios";
+import { ADMIN_CLIENT } from "../../Infraestructure/AxiosConfig";
 
-/**
- * Service for application configuration
- * Exposes environment-based settings
- */
-export class ConfigService {
-  getApiUrl(): string {
-    return Config.API_URL;
-  }
+export const requestMenuConfig = (): Promise<ResponseModel<Menu>> => {
+  return ADMIN_CLIENT.get(`/v1/configurations/menu`)
+    .then((response) => response.data)
+    .catch((error) => {
+      if (axios.isAxiosError(error)) {
+        console.error("Axios error:", error.message);
 
-  getEnvironment(): string {
-    return Config.ENVIRONMENT;
-  }
+        const response = error.response?.data;
 
-  getLoginUrl(): string {
-    return Config.LOGIN_URL;
-  }
+        if (!!response) {
+          return response;
+        }
 
-  getTimeout(): number {
-    return Config.TIMEOUT;
-  }
+        return new ResponseModel("BACK-ERROR").withError(
+          Number.parseInt(error.code || "500"),
+          "Network/communication error."
+        );
+      } else {
+        console.error("Unexpected error:", error);
 
-  getFeatureFlags(): Record<string, boolean> {
-    return {
-      ENABLE_COLLABORATION: false, // Not implemented yet
-      ENABLE_ANALYTICS: true,
-      ENABLE_EXPORT: true,
-    };
-  }
-}
-
-export default new ConfigService();
+        return new ResponseModel("APP-ERROR").withError(
+          500,
+          `Error when trying to query menu config, please try again later.`
+        );
+      }
+    });
+};

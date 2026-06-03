@@ -1,30 +1,95 @@
-import axios from "axios";
-import { EXTERNAL_CLIENT } from "../../Infraestructure/AxiosConfig";
+import axios, { Method } from "axios";
+import { Config } from "../../Config";
+import { Model } from "../../Domain/ProductLineEngineering/Entities/Model";
 
-/**
- * Service for domain restrictions and validations
- * Communicates with backend validation services
- */
-export class RestrictionService {
-  async validateProductLineStructure(productLineData: any): Promise<any> {
-    try {
-      const response = await EXTERNAL_CLIENT.post("/validate/product-line", productLineData);
-      return response.data;
-    } catch (error) {
-      console.error("Error validating product line:", error);
-      throw error;
-    }
-  }
+export default class RestrictionService {
+  apiVariamos = axios.create({
+    baseURL: Config.SERVICES.urlBackEndRestriction,
+  });
 
-  async validateSimulationConfiguration(config: any): Promise<any> {
+  applyRestriction(callback: any, model: Model, name: string, definition: any) {
+    let response: string;
+
+    // Standard Request Start
+    let requestBody = {
+      transactionId: "applyRestriction_",
+      data: {
+        model,
+        restriction: {
+          name,
+          definition,
+        },
+      },
+    };
+    // Standard Request End
+
+    const config = {
+      baseURL: Config.SERVICES.urlBackEndRestriction + "/restriction/" + name,
+      method: "POST" as Method,
+      data: requestBody,
+    };
     try {
-      const response = await EXTERNAL_CLIENT.post("/validate/simulation-config", config);
-      return response.data;
+      axios(config).then((res) => {
+        let responseAPISuccess: ResponseAPISuccess = new ResponseAPISuccess();
+        responseAPISuccess = Object.assign(responseAPISuccess, res.data);
+        // response = responseAPISuccess.message;
+
+        if (responseAPISuccess.message?.includes("Error"))
+          throw new Error(JSON.stringify(res.data));
+
+        callback(responseAPISuccess);
+      }).catch(function (error) {
+        let m=JSON.stringify(error);
+        console.log(m);
+        // alert(m);
+
+        // if (error.response) {
+        //   // Request made and server responded
+        //   alert(error.response.data);
+        //   alert(error.response.status);
+        //   alert(error.response.headers);
+        // } else if (error.request) {
+        //   // The request was made but no response was received
+        //   alert(error.request);
+        // } else {
+        //   // Something happened in setting up the request that triggered an Error
+        //   alert('Error ' + error.message);
+        // }
+    
+      });
     } catch (error) {
-      console.error("Error validating simulation configuration:", error);
-      throw error;
+      response = "Something wrong in apply restriction Service: " + error;
+      console.log(response);
+      callback(response);
     }
   }
 }
 
-export default new RestrictionService();
+export class ResponseAPISuccess {
+  transactionId?: string;
+  message?: string;
+  data?: JSON;
+  constructor(transactionId?: string, message?: string, data?: JSON) {
+    this.transactionId = transactionId;
+    this.message = message;
+    this.data = data;
+  }
+}
+
+export class ResponseAPIError {
+  transactionId?: string;
+  message?: string;
+  errorCode?: string;
+  data?: JSON;
+  constructor(
+    transactionId?: string,
+    message?: string,
+    errorCode?: string,
+    data?: JSON
+  ) {
+    this.transactionId = transactionId;
+    this.message = message;
+    this.errorCode = errorCode;
+    this.data = data;
+  }
+}
